@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quick Agent AI Chat</title>
+    <style>
+      body {
+        width: 300px;
+        height: 200px;
+        margin: 0;
+        padding: 20px;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      .popup-content {
+        text-align: center;
+      }
+      .popup-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #1f2937;
+      }
+      .popup-description {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 20px;
+        line-height: 1.5;
+      }
+      .popup-button {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background-color 0.2s;
+      }
+      .popup-button:hover {
+        background: #2563eb;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="popup-content">
+      <h1 class="popup-title">Quick Agent AI Chat</h1>
+      <p class="popup-description">
+        Click the button below to toggle the AI chat window on this page.
+      </p>
+      <button class="popup-button" id="toggleChat">
+        Toggle AI Chat
+      </button>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

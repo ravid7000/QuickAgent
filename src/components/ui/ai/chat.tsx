@@ -6,12 +6,12 @@ import {
 import { Loader } from "@/components/ui/ai/loader";
 import {
   Message,
-  MessageAvatar,
+  // MessageAvatar,
   MessageContent,
 } from "@/components/ui/ai/message";
 import {
   PromptInput,
-  PromptInputButton,
+  // PromptInputButton,
 //   PromptInputModelSelect,
 //   PromptInputModelSelectContent,
 //   PromptInputModelSelectItem,
@@ -19,8 +19,8 @@ import {
 //   PromptInputModelSelectValue,
   PromptInputSubmit,
   PromptInputTextarea,
-  PromptInputToolbar,
-  PromptInputTools,
+  // PromptInputToolbar,
+  // PromptInputTools,
 } from "@/components/ui/ai/prompt-input";
 import {
   Reasoning,
@@ -34,7 +34,7 @@ import {
   SourcesTrigger,
 } from "@/components/ui/ai/source";
 import { Button } from "@/components/ui/button";
-import { MicIcon, PaperclipIcon, XIcon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import { nanoid } from "nanoid";
 import { type FormEventHandler, useCallback, useState } from "react";
 // import { Avatar, AvatarFallback, AvatarImage } from "../avatar";
@@ -47,12 +47,12 @@ type ChatMessage = {
   sources?: Array<{ title: string; url: string }>;
   isStreaming?: boolean;
 };
-const models = [
-  { id: "gpt-4o", name: "GPT-4o" },
-  { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet" },
-  { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro" },
-  { id: "llama-3.1-70b", name: "Llama 3.1 70B" },
-];
+// const models = [
+//   { id: "gpt-4o", name: "GPT-4o" },
+//   { id: "claude-3-5-sonnet", name: "Claude 3.5 Sonnet" },
+//   { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro" },
+//   { id: "llama-3.1-70b", name: "Llama 3.1 70B" },
+// ];
 const sampleResponses = [
   {
     content:
@@ -94,7 +94,7 @@ const sampleResponses = [
     ],
   },
 ];
-const Chat = () => {
+const Chat = ({ onClose }: { onClose: () => void }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: nanoid(),
@@ -110,9 +110,11 @@ const Chat = () => {
   ]);
 
   const [inputValue, setInputValue] = useState("");
-  const [selectedModel, setSelectedModel] = useState(models[0].id);
+  // const [selectedModel, setSelectedModel] = useState(models[0].id);
   const [isTyping, setIsTyping] = useState(false);
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_streamingMessageId, setStreamingMessageId] = useState<string | null>(
     null
   );
 
@@ -212,9 +214,10 @@ const Chat = () => {
     setInputValue("");
     setIsTyping(false);
     setStreamingMessageId(null);
-  }, []);
+    onClose();
+  }, [onClose]);
   return (
-    <div className="flex h-full w-full max-h-[500px] flex-col overflow-hidden rounded-xl border bg-background shadow-sm">
+    <div className="flex h-full w-full flex-col overflow-hidden rounded-xl border bg-background shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between bg-white px-4 py-3">
         {/* <div className="flex items-center gap-3">
@@ -308,7 +311,7 @@ const Chat = () => {
           <PromptInputTextarea
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Ask me anything about development, coding, or technology..."
+            placeholder="How can I help you today?"
             disabled={isTyping}
           />
           <div className="p-2">

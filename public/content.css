@@ -1,0 +1,36 @@
+/* Content script styles for the floating chat window */
+#quick-agent-chat-container {
+  /* Ensure the chat window appears above all other content */
+  z-index: 2147483647 !important;
+  /* Prevent the chat from interfering with page layout */
+  pointer-events: auto;
+}
+
+#quick-agent-chat-container * {
+  box-sizing: border-box;
+}
+
+/* Ensure the iframe content is properly styled */
+#quick-agent-chat-container iframe {
+  /* Remove any default iframe styling */
+  border: none !important;
+  outline: none !important;
+  /* Ensure proper scrolling */
+  overflow: hidden;
+}
+
+/* Make sure the chat window doesn't interfere with page interactions when hidden */
+#quick-agent-chat-container[style*="display: none"] {
+  pointer-events: none;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 480px) {
+  #quick-agent-chat-container {
+    width: calc(100vw - 20px) !important;
+    height: calc(100vh - 40px) !important;
+    top: 10px !important;
+    right: 10px !important;
+    left: 10px !important;
+  }
+}
