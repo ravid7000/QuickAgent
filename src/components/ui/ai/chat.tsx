@@ -184,10 +184,12 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
       async function parseAndExecuteActions(content: string): Promise<{
         processedContent: string;
         hasActions: boolean;
+        functionName: string;
       }> {
         try {
           let processedContent = content;
           let hasActions = false;
+          let functionName = "";
 
           // Look for single JSON objects
           const jsonMatches = processedContent.match(
@@ -200,6 +202,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
               try {
                 const action = JSON.parse(jsonMatch);
                 if (action.function && action.function.startsWith("browser_")) {
+                  functionName = action.function;
                   const actionResult = await handleBrowserAction(action);
                   processedContent = processedContent.replace(
                     jsonMatch,
@@ -213,12 +216,14 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
             }
           }
 
-          return { processedContent, hasActions };
+          return { processedContent, hasActions, functionName };
         } catch (error) {
           console.log("error", error);
-          return { processedContent: content, hasActions: false };
+          return { processedContent: content, hasActions: false, functionName: "" };
         }
       }
+
+      // const initialSnapshot = await parseAndExecuteActions(`{"function": "browser_snapshot", "params": {}}`);
 
       // Add user message
       const userMessage: ChatMessage = {
@@ -233,6 +238,12 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
         role: "system",
         timestamp: new Date(),
       }
+      // const initialSnapshotMessage: ChatMessage = {
+      //   id: nanoid(),
+      //   content: initialSnapshot.processedContent,
+      //   role: "system",
+      //   timestamp: new Date(),
+      // }
       setMessages((prev) => [...prev, userMessage]);
       setInputValue("");
       setIsTyping(true);
@@ -240,6 +251,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
 
       const updateMessages = [
         sytemMessage,
+        // initialSnapshotMessage,
         userMessage,
       ];
 
@@ -322,13 +334,14 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
         console.log({ response });
 
         const content = response.choices?.[0].message?.content ?? "";
-        const { processedContent, hasActions } = await parseAndExecuteActions(content);
+        const { processedContent, hasActions, functionName } = await parseAndExecuteActions(content);
 
         // Create assistant message
         const assistantMessage: ChatMessage = {
           id: nanoid(),
-          content: processedContent,
+          content: hasActions ? functionName : processedContent,
           role: "assistant",
+          reasoning: hasActions ? processedContent : "",
           timestamp: new Date(),
         };
 
@@ -359,19 +372,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
     [inputValue, isTyping]
   );
   const handleReset = useCallback(() => {
-    setMessages([
-      {
-        id: nanoid(),
-        content:
-          "Hello! I'm your AI assistant. I can help you with coding questions, explain concepts, and provide guidance on web development topics. What would you like to know?",
-        role: "assistant",
-        timestamp: new Date(),
-        sources: [
-          { title: "Getting Started Guide", url: "#" },
-          { title: "API Documentation", url: "#" },
-        ],
-      },
-    ]);
+    setMessages([]);
     setInputValue("");
     setIsTyping(false);
     onClose();
@@ -424,10 +425,11 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
               </Message>
               {/* Reasoning */}
               {message.reasoning && (
-                <div className="ml-10">
+                <div className="ml-2">
                   <Reasoning
                     isStreaming={false}
                     defaultOpen={false}
+                    className="text-xs"
                   >
                     <ReasoningTrigger />
                     <ReasoningContent>{message.reasoning}</ReasoningContent>

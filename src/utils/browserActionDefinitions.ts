@@ -130,11 +130,19 @@ export const BROWSER_ACTION_DEFINITIONS = {
   },
   browser_snapshot: {
     title: "Page snapshot",
-    description: "Capture accessibility snapshot of the current page",
+    description: "Capture a comprehensive accessibility snapshot of the current page. Returns a YAML-formatted accessibility tree that includes all interactive elements, their roles, names, states, and precise selectors. Each element includes: role, accessible name, unique reference (ref=eN), CSS selector for targeting, and additional properties like checked/selected/disabled states. The tree structure mirrors how screen readers and assistive technologies perceive the page. Use the ref or selector values as parameters in other browser actions to interact with specific elements.",
     parameters: {},
     example: {
       function: "browser_snapshot",
-      params: {}
+      params: {},
+      output: `Page url: https://example.com
+Page title: Example Page
+Elements: \`\`\`yaml
+- document [ref=e1] [selector="html > body"]
+  - heading "Welcome" [ref=e2] [selector="body > h1"] [level=1]
+  - button "Submit" [ref=e3] [selector="body > button#submit"] [cursor=pointer]
+  - textbox "Enter name" [ref=e4] [selector="body > input[name='name']"] [required]
+\`\`\``
     }
   },
   browser_wait_for: {
@@ -155,36 +163,45 @@ export const BROWSER_ACTION_DEFINITIONS = {
 };
 
 export function getBrowserActionPrompt(): string {
-  return `You are an AI assistant with access to browser automation functions. You can interact with web pages by using these functions.
+  return `You are a browser automation assistant. Your ONLY job is to execute browser actions to fulfill user requests.
 
-**IMPORTANT LOOP BEHAVIOR:**
-- After executing browser actions, the system will automatically call you again with the results
-- You can continue the conversation by providing more actions or responses
-- To continue the loop, simply provide more browser actions or a response
-- To end the loop, provide a final response without any browser actions
-- The system will keep calling you until you provide a response without browser actions
+**CORE BEHAVIOR:**
+- ALWAYS start with browser_snapshot to see the current page
+- NEVER make assumptions about page content or state
+- NEVER ask users to perform actions - YOU do them via functions
+- ALWAYS return JSON function calls, never plain text responses
+- Continue executing actions until the user's request is fully completed
 
-**Available Browser Functions:**
+**RESPONSE FORMAT:**
+Every response must be a JSON object:
+{"function": "function_name", "params": {...}}
 
-${Object.entries(BROWSER_ACTION_DEFINITIONS).map(([key, def]) => `
-**${def.title}** (${key})
-${def.description}
-Parameters: ${JSON.stringify(def.parameters, null, 2)}
-Example: ${JSON.stringify(def.example, null, 2)}
-`).join('\n')}
+**AVAILABLE FUNCTIONS:**
+${Object.entries(BROWSER_ACTION_DEFINITIONS).map(([key, def]) => {
+  const params = Object.entries(def.parameters).map(([param, desc]) => `  ${param}: ${desc}`).join('\n');
+  const example = JSON.stringify(def.example, null, 2).split('\n').map(line => `  ${line}`).join('\n');
+  return `${key}:
+  title: ${def.title}
+  description: ${def.description}
+  parameters:
+${params}
+  example:
+${example}`;
+}).join('\n\n')}
 
-Remember to always call browser_snapshot function before executing any other function to get the current state of the page.
+**EXECUTION FLOW:**
+1. User asks a question/request
+2. You call browser_snapshot to see the page
+3. You analyze the page and execute relevant actions
+4. You continue with more actions based on results
+5. You complete the user's request through actions only
 
-**Usage:**
-To use these functions, include a JSON object in your response like this:
-{"function": "browser_click", "params": {"element": "Submit button", "ref": "submit-btn"}}
-
-The system will automatically execute these actions and replace the JSON with the result, then call you again with the updated context.
-
-**Loop Control:**
-- If you want to continue with more actions, include them in your response
-- If you want to end the conversation, provide a final response without any browser action JSON objects
-- You can mix regular text responses with browser actions
+**CRITICAL RULES:**
+- NO assumptions about page content
+- NO asking users to do anything
+- NO plain text responses - only JSON function calls
+- ALWAYS start with browser_snapshot
+- KEEP executing until request is complete
 `;
 }
 

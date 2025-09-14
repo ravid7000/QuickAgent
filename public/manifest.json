@@ -6,7 +6,8 @@
   "permissions": [
     "activeTab",
     "storage",
-    "scripting"
+    "scripting",
+    "debugger"
   ],
   "host_permissions": [
     "http://*/*",
@@ -32,5 +33,8 @@
   "action": {
     "default_title": "Quick Agent AI Chat",
     "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
   }
 }

@@ -14,7 +14,7 @@ function App() {
 
         const styles = isChatOpen ? {
           width: '400px',
-          height: '450px',
+          height: '750px',
         } : {
           width: '48px',
           height: '48px',

@@ -30,10 +30,10 @@ export async function callModel(messages: ChatMessage[]): Promise<{
       method: 'POST',
       headers,
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4o',
         messages: messages.map((message) => ({
           user: message.role,
-          content: message.content,
+          content: message.reasoning || message.content,
         }))
       })
     });
