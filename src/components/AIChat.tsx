@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Response } from './ui/ai/response'
+import BrowserActionService from '@/services/browserActionService'
 
 export type ChatMessage = {
   id: string
@@ -33,6 +34,116 @@ function AIChat({
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight })
   }, [messages, isSending])
 
+  // Handle browser actions from AI responses
+  async function handleBrowserAction(action: Record<string, unknown>): Promise<string> {
+    try {
+      const browserActionService = BrowserActionService.getInstance();
+      let result;
+
+      const params = action.params as Record<string, unknown>;
+      
+      switch (action.function) {
+        case 'browser_click':
+          result = await browserActionService.click(
+            params.element as string,
+            params.ref as string,
+            {
+              doubleClick: params.doubleClick as boolean,
+              button: params.button as 'left' | 'right' | 'middle',
+              modifiers: params.modifiers as ('Alt' | 'Control' | 'ControlOrMeta' | 'Meta' | 'Shift')[]
+            }
+          );
+          break;
+        case 'browser_evaluate':
+          result = await browserActionService.evaluate(
+            params.function as string,
+            params.element as string,
+            params.ref as string
+          );
+          break;
+        case 'browser_file_upload':
+          result = await browserActionService.fileUpload(params.paths as string[]);
+          break;
+        case 'browser_fill_form':
+          result = await browserActionService.fillForm(params.fields as Array<{
+            name: string;
+            type: 'textbox' | 'checkbox' | 'radio' | 'combobox' | 'slider';
+            ref: string;
+            value: string | boolean;
+          }>);
+          break;
+        case 'browser_navigate':
+          result = await browserActionService.navigate(params.url as string);
+          break;
+        case 'browser_navigate_back':
+          result = await browserActionService.navigateBack();
+          break;
+        case 'browser_press_key':
+          result = await browserActionService.pressKey(params.key as string);
+          break;
+        case 'browser_select_option':
+          result = await browserActionService.selectOption(
+            params.element as string,
+            params.ref as string,
+            params.values as string[]
+          );
+          break;
+        case 'browser_snapshot':
+          result = await browserActionService.snapshot();
+          break;
+        case 'browser_wait_for':
+          result = await browserActionService.waitFor(params as {
+            time?: number;
+            text?: string;
+            textGone?: string;
+          });
+          break;
+        default:
+          return `Unknown browser action: ${action.function}`;
+      }
+
+      if (result.success) {
+        return `✅ Browser action "${action.function}" executed successfully. ${JSON.stringify(result.data)}`;
+      } else {
+        return `❌ Browser action "${action.function}" failed: ${result.error}`;
+      }
+    } catch (error) {
+      return `❌ Error executing browser action: ${error}`;
+    }
+  }
+
+  // Parse AI response for browser actions
+  async function parseAndExecuteActions(content: string): Promise<string> {
+    try {
+      // Look for JSON objects that might be browser actions
+      const jsonMatches = content.match(/\{[^{}]*"function"[^{}]*\}/g);
+      if (!jsonMatches) {
+        return content;
+      }
+
+      let processedContent = content;
+      
+      for (const jsonMatch of jsonMatches) {
+        try {
+          const action = JSON.parse(jsonMatch);
+          if (action.function && action.function.startsWith('browser_')) {
+            const actionResult = await handleBrowserAction(action);
+            processedContent = processedContent.replace(jsonMatch, actionResult);
+          }
+        } catch (parseError) {
+          // If it's not a valid JSON, continue
+          console.log('parsing error', parseError)
+          continue;
+        }
+      }
+
+      return processedContent;
+    } catch (error) {
+      console.log('error', error);
+      return content;
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const trimmed = input.trim()
@@ -57,10 +168,14 @@ function AIChat({
         // Fallback mock reply
         reply = "I'm a placeholder assistant response. Wire `onSend` to connect me to your backend."
       }
+      
+      // Process the reply for browser actions
+      const processedReply = await parseAndExecuteActions(reply);
+      
       const botMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: reply
+        content: processedReply
       }
       setMessages(prev => [...prev, botMessage])
     } finally {

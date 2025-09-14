@@ -33,7 +33,7 @@ function App() {
   return (
     <div className="max-w-full h-full flex items-end flex-col gap-4">
       {isChatOpen ? (
-        <div className="h-full">
+        <div className="h-full flex-1 w-full">
           <Chat onClose={() => setIsChatOpen(false)} />
         </div>
       ) : (
