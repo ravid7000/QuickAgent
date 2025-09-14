@@ -2,13 +2,14 @@
 export const BROWSER_ACTION_DEFINITIONS = {
   browser_click: {
     title: "Click",
-    description: "Perform click on a web page",
+    description: "Perform click on a web page using either scripting API or debugger API",
     parameters: {
       element: "string - Human-readable element description",
       ref: "string - Exact target element reference from the page snapshot",
       doubleClick: "boolean (optional) - Whether to perform a double click",
       button: "string (optional) - Button to click, defaults to left",
-      modifiers: "array (optional) - Modifier keys to press"
+      modifiers: "array (optional) - Modifier keys to press",
+      useDebugger: "boolean (optional) - Use Chrome debugger API instead of scripting API"
     },
     example: {
       function: "browser_click",
@@ -16,7 +17,8 @@ export const BROWSER_ACTION_DEFINITIONS = {
         element: "Submit button",
         ref: "submit-btn",
         doubleClick: false,
-        button: "left"
+        button: "left",
+        useDebugger: true
       }
     }
   },
@@ -138,11 +140,52 @@ export const BROWSER_ACTION_DEFINITIONS = {
       output: `Page url: https://example.com
 Page title: Example Page
 Elements: \`\`\`yaml
-- document [ref=e1] [selector="html > body"]
-  - heading "Welcome" [ref=e2] [selector="body > h1"] [level=1]
-  - button "Submit" [ref=e3] [selector="body > button#submit"] [cursor=pointer]
-  - textbox "Enter name" [ref=e4] [selector="body > input[name='name']"] [required]
+- document [ref=e1] [NON_CLICKABLE]
+  - heading "Welcome" [ref=e2] [NON_CLICKABLE]
+  - button "Submit" [ref=e3] [CLICKABLE] [cursor=pointer]
+  - textbox "Enter name" [ref=e4] [CLICKABLE] [required]
 \`\`\``
+    }
+  },
+  browser_get_by_role: {
+    title: "Get by role",
+    description: "Find elements by their accessible role and return their HTML. Supports both explicit ARIA roles and implicit HTML element roles. Can filter by accessible name and additional options like visibility, selection state, etc.",
+    parameters: {
+      role: "string - The accessible role to search for (e.g., 'button', 'textbox', 'heading', 'link')",
+      name: "string (optional) - Filter by accessible name (partial match, case-insensitive)",
+      options: "object (optional) - Additional filter options like {hidden: false, selected: true, checked: false}"
+    },
+    example: {
+      function: "browser_get_by_role",
+      params: {
+        role: "button",
+        name: "submit",
+        options: { hidden: false }
+      },
+      output: `{
+  "success": true,
+  "data": {
+    "elements": [
+      {
+        "html": "<button id='submit-btn' class='btn-primary'>Submit Form</button>",
+        "tagName": "button",
+        "role": "button",
+        "name": "Submit Form",
+        "id": "submit-btn",
+        "className": "btn-primary",
+        "textContent": "Submit Form",
+        "attributes": {
+          "id": "submit-btn",
+          "class": "btn-primary",
+          "role": "button"
+        }
+      }
+    ],
+    "count": 1,
+    "role": "button",
+    "name": "submit"
+  }
+}`
     }
   },
   browser_wait_for: {

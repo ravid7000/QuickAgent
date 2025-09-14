@@ -1,9 +1,6 @@
-const API_KEY = 'Bearer sk-4ImuK3NyU8iesp6t4BSxnz';
-
 const headers = new Headers();
 
 headers.append('Content-Type', 'application/json');
-headers.append('Authorization', API_KEY);
 
 type ChatMessage = {
   id: string;

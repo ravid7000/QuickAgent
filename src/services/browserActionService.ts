@@ -25,45 +25,26 @@ class BrowserActionService {
         return { success: false, error: validation.error };
       }
 
-      // Get the active tab
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      
-      if (!tab.id) {
-        return { success: false, error: 'No active tab found' };
-      }
-
-      // Check if content script is available
-      // try {
-      //   await chrome.tabs.sendMessage(tab.id, { action: 'ping' });
-      //   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      // } catch (error) {
-      //   return { 
-      //     success: false, 
-      //     error: 'Content script not available. Please refresh the page and try again.' 
-      //   };
-      // }
-
-      // Send message to content script with timeout
-      // const response = await Promise.race([
-      //   chrome.tabs.sendMessage(tab.id, {
-      //     action: 'browserAction',
-      //     function: request.function,
-      //     params: request.params
-      //   }),
-      //   new Promise((_, reject) => 
-      //     setTimeout(() => reject(new Error('Action timeout')), 1000)
-      //   )
-      // ]);
-
-      const response = await chrome.tabs.sendMessage(tab.id, {
-        action: 'browserAction',
-        function: request.function,
-        params: request.params
+      // Send message directly to background script
+      const response = await new Promise<BrowserActionResult>((resolve, reject) => {
+        chrome.runtime.sendMessage({
+          action: 'browserAction',
+          function: request.function,
+          params: request.params
+        }, (response) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          if ((chrome.runtime as any).lastError) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            reject(new Error((chrome.runtime as any).lastError.message));
+          } else {
+            resolve(response as BrowserActionResult);
+          }
+        });
       });
 
       console.log('execute action response', {response})
 
-      return response as BrowserActionResult;
+      return response;
     } catch (error) {
       console.error('Browser action error:', error);
       return { 
@@ -78,6 +59,7 @@ class BrowserActionService {
     doubleClick?: boolean;
     button?: 'left' | 'right' | 'middle';
     modifiers?: ('Alt' | 'Control' | 'ControlOrMeta' | 'Meta' | 'Shift')[];
+    useDebugger?: boolean;
   }): Promise<BrowserActionResult> {
     return this.executeBrowserAction({
       function: 'browser_click',
@@ -166,6 +148,13 @@ class BrowserActionService {
     return this.executeBrowserAction({
       function: 'browser_wait_for',
       params: options
+    });
+  }
+
+  async getByRole(role: string, name?: string, options?: { hidden: boolean; selected: boolean; checked: boolean }): Promise<BrowserActionResult> {
+    return this.executeBrowserAction({
+      function: 'browser_get_by_role',
+      params: { role, name, options }
     });
   }
 }

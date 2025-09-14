@@ -21,6 +21,7 @@ import {
   // PromptInputToolbar,
   // PromptInputTools,
 } from "@/components/ui/ai/prompt-input";
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Reasoning,
   ReasoningContent,
@@ -111,6 +112,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
                 params.element as string,
                 params.ref as string
               );
+              console.log("browser_evaluate", result);
               break;
             case "browser_file_upload":
               result = await browserActionService.fileUpload(
@@ -164,19 +166,26 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
                 }
               );
               break;
+            case "browser_get_by_role":
+              result = await browserActionService.getByRole(
+                params.role as string,
+                params.name as string,
+                params.options as { hidden: boolean; selected: boolean; checked: boolean }
+              );
+              break;
             default:
               return `Unknown browser action: ${action.function}`;
           }
 
           if (result.success) {
-            return `✅ Browser action "${
+            return `Browser action "${
               action.function
-            }" executed successfully. ${JSON.stringify(result.data)}`;
+            }" results: ${JSON.stringify(result.data)}`;
           } else {
-            return `❌ Browser action "${action.function}" failed: ${result.error}`;
+            return `Browser action "${action.function}" failed: ${result.error}`;
           }
         } catch (error) {
-          return `❌ Error executing browser action: ${error}`;
+          return `Error executing browser action: ${error}`;
         }
       }
 
@@ -254,10 +263,6 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
         // initialSnapshotMessage,
         userMessage,
       ];
-
-      const response = await callModel(updateMessages);
-
-      console.log({ response });
 
       // Context management utilities
       function getLeanContext(messages: ChatMessage[]): ChatMessage[] {
@@ -381,20 +386,16 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
     <div className="flex h-full w-full flex-col overflow-hidden rounded-xl border bg-background shadow-sm">
       {/* Header */}
       <div className="flex items-center justify-between bg-white px-4 py-3">
-        {/* <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <Avatar>
-                <AvatarImage src="https://github.com/dovazencot.png" />
-                <AvatarFallback>QA</AvatarFallback>
-            </Avatar>
             <div className="w-8 h-8 rounded-md bg-primary inline-flex items-center justify-center text-white text-sm">QA</div>
             <span className="font-medium text-sm">QuickAgent</span>
           </div>
-          <div className="h-4 w-px bg-border" />
+          {/* <div className="h-4 w-px bg-border" />
           <span className="text-muted-foreground text-xs">
             {models.find((m) => m.id === selectedModel)?.name}
-          </span>
-        </div> */}
+          </span> */}
+        </div>
         <div className="ml-auto" />
         <Button
           variant="ghost"
@@ -407,7 +408,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
       </div>
       {/* Conversation Area */}
       <Conversation className="flex-1">
-        <ConversationContent className="space-y-4">
+        <ConversationContent className="space-y-2">
           {messages.map((message) => (
             <div key={message.id}>
               <Message from={message.role}>
@@ -425,7 +426,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
               </Message>
               {/* Reasoning */}
               {message.reasoning && (
-                <div className="ml-2">
+                <div className="ml-1">
                   <Reasoning
                     isStreaming={false}
                     defaultOpen={false}
@@ -438,7 +439,7 @@ const Chat = ({ onClose }: { onClose: () => void }) => {
               )}
               {/* Sources */}
               {message.sources && message.sources.length > 0 && (
-                <div className="ml-2">
+                <div className="ml-1">
                   <Sources>
                     <SourcesTrigger count={message.sources.length} />
                     <SourcesContent>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debugger Click Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .test-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background-color 0.3s;
+        }
+        .test-button:hover {
+            background-color: #0056b3;
+        }
+        .test-button:active {
+            background-color: #004085;
+        }
+        .test-button.secondary {
+            background-color: #6c757d;
+        }
+        .test-button.secondary:hover {
+            background-color: #545b62;
+        }
+        .test-button.success {
+            background-color: #28a745;
+        }
+        .test-button.success:hover {
+            background-color: #1e7e34;
+        }
+        .test-button.danger {
+            background-color: #dc3545;
+        }
+        .test-button.danger:hover {
+            background-color: #c82333;
+        }
+        .test-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .test-input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        .test-checkbox {
+            margin: 10px 0;
+        }
+        .test-checkbox input {
+            margin-right: 10px;
+        }
+        .test-select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            border-radius: 0 5px 5px 0;
+        }
+        .clicked {
+            background-color: #d4edda !important;
+            border-color: #c3e6cb !important;
+            color: #155724 !important;
+        }
+        .double-clicked {
+            background-color: #fff3cd !important;
+            border-color: #ffeaa7 !important;
+            color: #856404 !important;
+        }
+        .right-clicked {
+            background-color: #f8d7da !important;
+            border-color: #f5c6cb !important;
+            color: #721c24 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Debugger Click Test Page</h1>
+        <p>This page is designed to test the Chrome debugger API click functionality. Use the Quick Agent extension to test different click scenarios.</p>
+
+        <div class="test-section">
+            <h2>Basic Click Tests</h2>
+            <button id="basic-click" class="test-button" onclick="handleBasicClick()">
+                Basic Click Me
+            </button>
+            <button id="double-click" class="test-button secondary" ondblclick="handleDoubleClick()">
+                Double Click Me
+            </button>
+            <button id="right-click" class="test-button success" oncontextmenu="handleRightClick(event)">
+                Right Click Me
+            </button>
+        </div>
+
+        <div class="test-section">
+            <h2>Form Elements</h2>
+            <input type="text" id="text-input" class="test-input" placeholder="Type something here..." />
+            <input type="checkbox" id="test-checkbox" class="test-checkbox" />
+            <label for="test-checkbox">Check this box</label>
+            <br>
+            <select id="test-select" class="test-select">
+                <option value="">Select an option</option>
+                <option value="option1">Option 1</option>
+                <option value="option2">Option 2</option>
+                <option value="option3">Option 3</option>
+            </select>
+        </div>
+
+        <div class="test-section">
+            <h2>Complex Elements</h2>
+            <div id="clickable-div" style="padding: 20px; background-color: #e9ecef; border-radius: 5px; cursor: pointer; text-align: center;" onclick="handleDivClick()">
+                Clickable Div Element
+            </div>
+            <a href="#" id="test-link" onclick="handleLinkClick(event)" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background-color: #17a2b8; color: white; text-decoration: none; border-radius: 5px;">
+                Test Link
+            </a>
+        </div>
+
+        <div class="test-section">
+            <h2>Modifier Key Tests</h2>
+            <button id="ctrl-click" class="test-button danger" onclick="handleModifierClick(event, 'Ctrl')">
+                Ctrl + Click Me
+            </button>
+            <button id="shift-click" class="test-button" onclick="handleModifierClick(event, 'Shift')">
+                Shift + Click Me
+            </button>
+            <button id="alt-click" class="test-button secondary" onclick="handleModifierClick(event, 'Alt')">
+                Alt + Click Me
+            </button>
+        </div>
+
+        <div class="result" id="result">
+            <h3>Click Results:</h3>
+            <div id="result-content">No clicks detected yet. Use the Quick Agent extension to test debugger clicks.</div>
+        </div>
+    </div>
+
+    <script>
+        let clickCount = 0;
+
+        function logClick(type, element, details = '') {
+            clickCount++;
+            const resultContent = document.getElementById('result-content');
+            const timestamp = new Date().toLocaleTimeString();
+            resultContent.innerHTML += `<div><strong>${clickCount}.</strong> [${timestamp}] ${type} on ${element} ${details}</div>`;
+            resultContent.scrollTop = resultContent.scrollHeight;
+        }
+
+        function handleBasicClick() {
+            this.classList.add('clicked');
+            logClick('Basic Click', 'Basic Click Button');
+            setTimeout(() => this.classList.remove('clicked'), 1000);
+        }
+
+        function handleDoubleClick() {
+            this.classList.add('double-clicked');
+            logClick('Double Click', 'Double Click Button');
+            setTimeout(() => this.classList.remove('double-clicked'), 1000);
+        }
+
+        function handleRightClick(event) {
+            event.preventDefault();
+            this.classList.add('right-clicked');
+            logClick('Right Click', 'Right Click Button');
+            setTimeout(() => this.classList.remove('right-clicked'), 1000);
+        }
+
+        function handleDivClick() {
+            this.classList.add('clicked');
+            logClick('Div Click', 'Clickable Div');
+            setTimeout(() => this.classList.remove('clicked'), 1000);
+        }
+
+        function handleLinkClick(event) {
+            event.preventDefault();
+            this.classList.add('clicked');
+            logClick('Link Click', 'Test Link');
+            setTimeout(() => this.classList.remove('clicked'), 1000);
+        }
+
+        function handleModifierClick(event, modifier) {
+            this.classList.add('clicked');
+            logClick(`${modifier} + Click`, `${modifier} Click Button`, `(Modifier: ${modifier})`);
+            setTimeout(() => this.classList.remove('clicked'), 1000);
+        }
+
+        // Add event listeners for programmatic clicks
+        document.addEventListener('click', function(event) {
+            if (event.isTrusted) {
+                logClick('Programmatic Click', event.target.tagName + (event.target.id ? `#${event.target.id}` : ''), '(Trusted Event)');
+            }
+        });
+
+        document.addEventListener('dblclick', function(event) {
+            if (event.isTrusted) {
+                logClick('Programmatic Double Click', event.target.tagName + (event.target.id ? `#${event.target.id}` : ''), '(Trusted Event)');
+            }
+        });
+
+        document.addEventListener('contextmenu', function(event) {
+            if (event.isTrusted) {
+                logClick('Programmatic Right Click', event.target.tagName + (event.target.id ? `#${event.target.id}` : ''), '(Trusted Event)');
+            }
+        });
+
+        // Log page load
+        logClick('Page Load', 'Document', 'Test page loaded successfully');
+    </script>
+</body>
+</html>

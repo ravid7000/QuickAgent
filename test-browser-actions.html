@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Actions Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        input, select, textarea {
+            padding: 8px;
+            margin: 5px;
+            width: 200px;
+        }
+        .result {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Browser Actions Test Page</h1>
+    <p>This page is designed to test the browser actions implemented in the Chrome extension.</p>
+
+    <div class="test-section">
+        <h2>Click Actions Test</h2>
+        <button id="test-button" ref="test-button">Click Me</button>
+        <button id="test-double-click" ref="test-double-click">Double Click Me</button>
+        <div id="click-result" class="result">Click results will appear here</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Form Filling Test</h2>
+        <form id="test-form">
+            <div>
+                <label for="name">Name:</label>
+                <input type="text" id="name" ref="name-input" placeholder="Enter your name">
+            </div>
+            <div>
+                <label for="email">Email:</label>
+                <input type="email" id="email" ref="email-input" placeholder="Enter your email">
+            </div>
+            <div>
+                <label for="country">Country:</label>
+                <select id="country" ref="country-select">
+                    <option value="">Select a country</option>
+                    <option value="us">United States</option>
+                    <option value="ca">Canada</option>
+                    <option value="uk">United Kingdom</option>
+                </select>
+            </div>
+            <div>
+                <label>
+                    <input type="checkbox" id="terms" ref="terms-checkbox">
+                    I agree to the terms
+                </label>
+            </div>
+            <div>
+                <label for="message">Message:</label>
+                <textarea id="message" ref="message-textarea" placeholder="Enter your message"></textarea>
+            </div>
+        </form>
+        <div id="form-result" class="result">Form filling results will appear here</div>
+    </div>
+
+    <div class="test-section">
+        <h2>JavaScript Evaluation Test</h2>
+        <button id="eval-button" ref="eval-button">Evaluate JavaScript</button>
+        <div id="eval-result" class="result">Evaluation results will appear here</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Key Press Test</h2>
+        <input type="text" id="key-test" ref="key-test-input" placeholder="Focus and press keys">
+        <div id="key-result" class="result">Key press results will appear here</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Wait Test</h2>
+        <button id="wait-button" ref="wait-button">Start Wait Test</button>
+        <div id="wait-result" class="result">Wait test results will appear here</div>
+    </div>
+
+    <script>
+        // Test page JavaScript
+        document.getElementById('test-button').addEventListener('click', function() {
+            document.getElementById('click-result').textContent = 'Button clicked!';
+        });
+
+        document.getElementById('test-double-click').addEventListener('dblclick', function() {
+            document.getElementById('click-result').textContent = 'Button double-clicked!';
+        });
+
+        document.getElementById('eval-button').addEventListener('click', function() {
+            const result = document.title;
+            document.getElementById('eval-result').textContent = `Page title: ${result}`;
+        });
+
+        document.getElementById('key-test').addEventListener('keydown', function(e) {
+            document.getElementById('key-result').textContent = `Key pressed: ${e.key}`;
+        });
+
+        document.getElementById('wait-button').addEventListener('click', function() {
+            document.getElementById('wait-result').textContent = 'Wait test started...';
+            setTimeout(() => {
+                document.getElementById('wait-result').textContent = 'Wait test completed after 2 seconds!';
+            }, 2000);
+        });
+
+        // Form change handlers
+        const form = document.getElementById('test-form');
+        form.addEventListener('change', function() {
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            document.getElementById('form-result').textContent = `Form data: ${JSON.stringify(data)}`;
+        });
+    </script>
+</body>
+</html>
